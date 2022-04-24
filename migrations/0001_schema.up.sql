@@ -9,6 +9,6 @@ CREATE TABLE "user" (
 CREATE TABLE "post" (
     "id" uuid PRIMARY KEY,
     "created_at" timestamp NOT NULL DEFAULT now(),
-    "author" uuid REFERENCES "user" ("id"),
+    "author" uuid NOT NULL REFERENCES "user" ("id") ON DELETE CASCADE,
     "text" varchar(3000) NOT NULL
 );
