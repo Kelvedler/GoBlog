@@ -2,4 +2,3 @@
 vendor/
 .env
 GoBlog
-build.sh
