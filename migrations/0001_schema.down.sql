@@ -1,3 +1,3 @@
 DROP TABLE "post";
 
-DROP TABLE "user"
+DROP TABLE "blog_user"

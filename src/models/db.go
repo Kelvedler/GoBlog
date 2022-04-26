@@ -1,20 +1,19 @@
 package models
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"os"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v4"
 )
 
-var db *sql.DB
+type dbConnection pgx.Conn
+
+var db *pgx.Conn
 
 func Init() {
-	conn, err := sql.Open("pgx", os.Getenv("DATABASE_URL"))
-	if err == nil {
-		err = conn.Ping()
-	}
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database %v\n", err)
 	} else {
@@ -22,10 +21,6 @@ func Init() {
 	}
 }
 
-func GetDB() *sql.DB {
-	return db
-}
-
 func CloseDBConn() {
-	db.Close()
+	db.Close(context.Background())
 }
