@@ -21,9 +21,18 @@ func Register(context *gin.Context) {
 	createdUser, err = models.CreateNewUser(user)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	} else {
 		context.JSON(http.StatusCreated, createdUser)
-		return
+	}
+}
+
+func List(context *gin.Context) {
+	usersSlice, err := models.GetSlice("id")
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if len(usersSlice) > 0 {
+			context.JSON(http.StatusOK, usersSlice)
+		}
 	}
 }

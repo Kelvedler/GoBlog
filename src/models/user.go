@@ -37,3 +37,27 @@ func CreateNewUser(newUser UserShort) (UserFull, error) {
 	}
 	return createdUser, nil
 }
+
+func GetSlice(orderBy string) ([]UserFull, error) {
+	usersSlice := make([]UserFull, 0)
+	rows, err := db.Query(context.Background(), "SELECT * FROM blog_user ORDER BY ($1)", orderBy)
+	if err != nil {
+		return usersSlice, err
+	}
+	next := rows.Next()
+	if !next {
+		return usersSlice, nil
+	}
+	for next {
+		var user UserFull
+		rows.Scan(
+			&user.ID,
+			&user.CreatedAt,
+			&user.FirstName,
+			&user.Username,
+			&user.Email)
+		usersSlice = append(usersSlice, user)
+		next = rows.Next()
+	}
+	return usersSlice, nil
+}

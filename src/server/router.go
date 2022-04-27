@@ -12,5 +12,6 @@ func RootRouter(engine *gin.Engine) {
 }
 
 func UserRouter(routerGroup *gin.RouterGroup) {
+	routerGroup.GET("", endpoints.List)
 	routerGroup.POST("/register", endpoints.Register)
 }
