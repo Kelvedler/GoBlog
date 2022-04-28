@@ -62,9 +62,22 @@ func GetSlice(orderBy string) ([]UserFull, error) {
 	return usersSlice, nil
 }
 
-func GetByID(ID string) (UserFull, error) {
+func GetByID(ID uuid.UUID) (UserFull, error) {
 	var user UserFull
 	err := db.QueryRow(context.Background(), "SELECT * FROM blog_user WHERE id=($1)", ID).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.FirstName,
+		&user.Username,
+		&user.Email)
+	return user, err
+}
+
+func UpdateByID(ID uuid.UUID, newValues UserShort) (UserFull, error) {
+	var user UserFull
+	err := db.QueryRow(context.Background(),
+		"UPDATE blog_user SET first_name=($2), username=($3), email=($4) WHERE id=($1) RETURNING id, created_at, first_name, username, email",
+		ID, newValues.FirstName, newValues.Username, newValues.Email).Scan(
 		&user.ID,
 		&user.CreatedAt,
 		&user.FirstName,

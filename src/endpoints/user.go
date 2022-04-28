@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Kelvedler/GoBlog/models"
@@ -15,7 +14,6 @@ func Register(context *gin.Context) {
 	var createdUser models.UserFull
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
-		fmt.Println(err)
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -47,16 +45,35 @@ func List(context *gin.Context) {
 }
 
 func Single(context *gin.Context) {
-	var user models.UserFull
-	id := context.Param("user_id")
-	_, err := uuid.Parse(id)
+	id, err := uuid.Parse(context.Param("user_id"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err = models.GetByID(id)
+	user, err := models.GetByID(id)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	context.JSON(http.StatusOK, user)
+}
+
+func Update(context *gin.Context) {
+	var user models.UserShort
+	id, err := uuid.Parse(context.Param("user_id"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err = context.ShouldBindJSON(&user)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	updatedUser, err := models.UpdateByID(id, user)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	} else {
+		context.JSON(http.StatusOK, updatedUser)
+	}
 }
