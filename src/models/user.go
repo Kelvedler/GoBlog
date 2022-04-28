@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -84,4 +85,16 @@ func UpdateByID(ID uuid.UUID, newValues UserShort) (UserFull, error) {
 		&user.Username,
 		&user.Email)
 	return user, err
+}
+
+func DeleteByID(ID uuid.UUID) error {
+	result, err := db.Exec(context.Background(), "DELETE FROM blog_user WHERE id=($1)", ID)
+	if err != nil {
+		return err
+	} else {
+		if result.RowsAffected() != 1 {
+			return errors.New("No row found to delete")
+		}
+	}
+	return nil
 }

@@ -77,3 +77,17 @@ func Update(context *gin.Context) {
 		context.JSON(http.StatusOK, updatedUser)
 	}
 }
+
+func Delete(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("user_id"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err = models.DeleteByID(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		context.JSON(http.StatusNoContent, gin.H{})
+	}
+}

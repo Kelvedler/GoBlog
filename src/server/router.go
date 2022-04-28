@@ -20,4 +20,5 @@ func UserRouter(routerGroup *gin.RouterGroup) {
 	routerGroup.GET("", endpoints.List)
 	routerGroup.GET("/:user_id", endpoints.Single)
 	routerGroup.PUT("/:user_id", endpoints.Update)
+	routerGroup.DELETE("/:user_id", endpoints.Delete)
 }
