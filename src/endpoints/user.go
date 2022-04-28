@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kelvedler/GoBlog/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func Register(context *gin.Context) {
@@ -27,7 +28,15 @@ func Register(context *gin.Context) {
 }
 
 func List(context *gin.Context) {
-	usersSlice, err := models.GetSlice("id")
+	paramOrderBy := context.Query("order_by")
+	orderBy := &models.UserColumns[0]
+	for _, i := range models.UserColumns {
+		if paramOrderBy == i {
+			orderBy = &paramOrderBy
+			break
+		}
+	}
+	usersSlice, err := models.GetSlice(*orderBy)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
@@ -35,4 +44,19 @@ func List(context *gin.Context) {
 			context.JSON(http.StatusOK, usersSlice)
 		}
 	}
+}
+
+func Single(context *gin.Context) {
+	var user models.UserFull
+	id := context.Param("user_id")
+	_, err := uuid.Parse(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user, err = models.GetByID(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	context.JSON(http.StatusOK, user)
 }
