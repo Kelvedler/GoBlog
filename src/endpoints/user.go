@@ -9,15 +9,14 @@ import (
 )
 
 func Register(context *gin.Context) {
-
-	var user models.UserShort
+	var userInput models.UserShort
 	var createdUser models.UserFull
-	err := context.ShouldBindJSON(&user)
+	err := context.ShouldBindJSON(&userInput)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	createdUser, err = models.CreateNewUser(user)
+	createdUser, err = models.UserCreateNew(userInput)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
@@ -34,7 +33,7 @@ func List(context *gin.Context) {
 			break
 		}
 	}
-	usersSlice, err := models.GetSlice(*orderBy)
+	usersSlice, err := models.UserGetSlice(*orderBy)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
@@ -50,7 +49,7 @@ func Single(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := models.GetByID(id)
+	user, err := models.UserGetByID(id)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -58,18 +57,18 @@ func Single(context *gin.Context) {
 }
 
 func Update(context *gin.Context) {
-	var user models.UserShort
+	var userInput models.UserShort
 	id, err := uuid.Parse(context.Param("user_id"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = context.ShouldBindJSON(&user)
+	err = context.ShouldBindJSON(&userInput)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	updatedUser, err := models.UpdateByID(id, user)
+	updatedUser, err := models.UserUpdateByID(id, userInput)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -84,7 +83,7 @@ func Delete(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = models.DeleteByID(id)
+	err = models.UserDeleteByID(id)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {

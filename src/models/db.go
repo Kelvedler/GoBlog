@@ -8,8 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-type dbConnection pgx.Conn
-
 var db *pgx.Conn
 
 func Init() {
