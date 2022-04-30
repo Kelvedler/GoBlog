@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Register(context *gin.Context) {
+func UserRegister(context *gin.Context) {
 	var userInput models.UserShort
 	var createdUser models.UserFull
 	err := context.ShouldBindJSON(&userInput)
@@ -24,7 +24,7 @@ func Register(context *gin.Context) {
 	}
 }
 
-func List(context *gin.Context) {
+func UserList(context *gin.Context) {
 	paramOrderBy := context.Query("order_by")
 	orderBy := &models.UserColumns[0]
 	for _, i := range models.UserColumns {
@@ -43,7 +43,7 @@ func List(context *gin.Context) {
 	}
 }
 
-func Single(context *gin.Context) {
+func UserSingle(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("user_id"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -56,7 +56,7 @@ func Single(context *gin.Context) {
 	context.JSON(http.StatusOK, user)
 }
 
-func Update(context *gin.Context) {
+func UserUpdate(context *gin.Context) {
 	var userInput models.UserShort
 	id, err := uuid.Parse(context.Param("user_id"))
 	if err != nil {
@@ -77,7 +77,7 @@ func Update(context *gin.Context) {
 	}
 }
 
-func Delete(context *gin.Context) {
+func UserDelete(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("user_id"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

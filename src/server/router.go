@@ -13,12 +13,12 @@ func RootRouter(engine *gin.Engine) {
 }
 
 func AuthRouter(routerGroup *gin.RouterGroup) {
-	routerGroup.POST("/register", endpoints.Register)
+	routerGroup.POST("/register", endpoints.UserRegister)
 }
 
 func UserRouter(routerGroup *gin.RouterGroup) {
-	routerGroup.GET("", endpoints.List)
-	routerGroup.GET("/:user_id", endpoints.Single)
-	routerGroup.PUT("/:user_id", endpoints.Update)
-	routerGroup.DELETE("/:user_id", endpoints.Delete)
+	routerGroup.GET("", endpoints.UserList)
+	routerGroup.GET("/:user_id", endpoints.UserSingle)
+	routerGroup.PUT("/:user_id", endpoints.UserUpdate)
+	routerGroup.DELETE("/:user_id", endpoints.UserDelete)
 }
