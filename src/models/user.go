@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 )
 
 type UserShort struct {
@@ -25,10 +26,10 @@ type UserFull struct {
 
 var UserColumns = [5]string{"id", "created_at", "first_name", "username", "email"}
 
-func UserCreateNew(newUser UserShort) (UserFull, error) {
+func UserCreateNew(ctx context.Context, conn *pgx.Conn, newUser UserShort) (UserFull, error) {
 	id := uuid.New()
 	var createdUser UserFull
-	err := db.QueryRow(context.Background(),
+	err := conn.QueryRow(ctx,
 		"INSERT INTO blog_user(id, first_name, username, email) VALUES($1, $2, $3, $4) RETURNING id, created_at, first_name, username, email",
 		id, newUser.FirstName, newUser.Username, newUser.Email).Scan(
 		&createdUser.ID,
@@ -39,9 +40,9 @@ func UserCreateNew(newUser UserShort) (UserFull, error) {
 	return createdUser, err
 }
 
-func UserGetSlice(orderBy string) ([]UserFull, error) {
+func UserGetSlice(ctx context.Context, conn *pgx.Conn, orderBy string) ([]UserFull, error) {
 	usersSlice := make([]UserFull, 0)
-	rows, err := db.Query(context.Background(), fmt.Sprintf("SELECT * FROM blog_user ORDER BY %s ASC", orderBy))
+	rows, err := conn.Query(ctx, fmt.Sprintf("SELECT * FROM blog_user ORDER BY %s ASC", orderBy))
 	if err != nil {
 		return usersSlice, err
 	}
@@ -63,9 +64,9 @@ func UserGetSlice(orderBy string) ([]UserFull, error) {
 	return usersSlice, nil
 }
 
-func UserGetByID(ID uuid.UUID) (UserFull, error) {
+func UserGetByID(ctx context.Context, conn *pgx.Conn, ID uuid.UUID) (UserFull, error) {
 	var user UserFull
-	err := db.QueryRow(context.Background(), "SELECT * FROM blog_user WHERE id=($1)", ID).Scan(
+	err := conn.QueryRow(ctx, "SELECT * FROM blog_user WHERE id=($1)", ID).Scan(
 		&user.ID,
 		&user.CreatedAt,
 		&user.FirstName,
@@ -74,9 +75,9 @@ func UserGetByID(ID uuid.UUID) (UserFull, error) {
 	return user, err
 }
 
-func UserUpdateByID(ID uuid.UUID, newValues UserShort) (UserFull, error) {
+func UserUpdateByID(ctx context.Context, conn *pgx.Conn, ID uuid.UUID, newValues UserShort) (UserFull, error) {
 	var user UserFull
-	err := db.QueryRow(context.Background(),
+	err := conn.QueryRow(ctx,
 		"UPDATE blog_user SET first_name=($2), username=($3), email=($4) WHERE id=($1) RETURNING id, created_at, first_name, username, email",
 		ID, newValues.FirstName, newValues.Username, newValues.Email).Scan(
 		&user.ID,
@@ -87,8 +88,8 @@ func UserUpdateByID(ID uuid.UUID, newValues UserShort) (UserFull, error) {
 	return user, err
 }
 
-func UserDeleteByID(ID uuid.UUID) error {
-	result, err := db.Exec(context.Background(), "DELETE FROM blog_user WHERE id=($1)", ID)
+func UserDeleteByID(ctx context.Context, conn *pgx.Conn, ID uuid.UUID) error {
+	result, err := conn.Exec(ctx, "DELETE FROM blog_user WHERE id=($1)", ID)
 	if err != nil {
 		return err
 	} else {

@@ -2,23 +2,22 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v4"
 )
 
-var db *pgx.Conn
-
-func Init() {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+func Init(ctx context.Context) (*pgx.Conn, error) {
+	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database %v\n", err)
+		return conn, errors.New(fmt.Sprintf("Unable to connect to database %v\n", err))
 	} else {
-		db = conn
+		return conn, nil
 	}
 }
 
-func CloseDBConn() {
-	db.Close(context.Background())
+func CloseDBConn(ctx context.Context, conn *pgx.Conn) {
+	conn.Close(ctx)
 }
