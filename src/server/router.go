@@ -13,7 +13,9 @@ func RootRouter(engine *gin.Engine) {
 }
 
 func AuthRouter(routerGroup *gin.RouterGroup) {
+	routerGroup.GET("/google_auth", endpoints.GoogleAuthURL)
 	routerGroup.POST("/register", endpoints.UserRegister)
+	routerGroup.GET("/jwt", endpoints.JWTToken)
 }
 
 func UserRouter(routerGroup *gin.RouterGroup) {
