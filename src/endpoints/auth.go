@@ -9,12 +9,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Kelvedler/GoBlog/models"
+	"github.com/Kelvedler/GoBlog/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 	"google.golang.org/api/idtoken"
 )
 
 const googleAuthScope = "email https://www.googleapis.com/auth/userinfo.email openid"
 const googleAuthPrompt = "consent"
+const googleJWTIssuer = "google"
 
 type GoogleResp struct {
 	AccessToken  string `json:"access_token"`
@@ -36,7 +40,7 @@ func GoogleAuthURL(ginCtx *gin.Context) {
 	query.Add("prompt", googleAuthPrompt)
 	req.URL.RawQuery = query.Encode()
 	if err != nil {
-		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ginCtx.JSON(http.StatusOK, gin.H{"url": req.URL.String()})
@@ -47,6 +51,10 @@ func JWTToken(ginCtx *gin.Context) {
 	if !ok {
 		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": "internal"})
 		return
+	}
+	conn, ok := ginCtx.MustGet("dbConn").(*pgx.Conn)
+	if !ok {
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": "internal"})
 	}
 	code := ginCtx.Query("code")
 	scope := ginCtx.Query("scope")
@@ -65,24 +73,38 @@ func JWTToken(ginCtx *gin.Context) {
 	data.Set("grant_type", "authorization_code")
 	req, err := http.NewRequest(http.MethodPost, "https://oauth2.googleapis.com/token", strings.NewReader(data.Encode()))
 	if err != nil {
-		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	if err != nil {
-		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	payload, err := idtoken.Validate(ctx, respBody.IDToken, os.Getenv("OAUTH_CLIENT_ID"))
 	if err != nil {
-		ginCtx.JSON(http.StatusForbidden, gin.H{"error": err.Error})
+		ginCtx.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
-	ginCtx.JSON(http.StatusOK, payload.Claims)
+	var newIDToken models.GoogleIDTokenShort
+	newIDToken.Sub = payload.Subject
+	newIDToken.Iat = payload.IssuedAt
+	newIDToken.Exp = payload.Expires
+	err = models.GoogleIDTokenCreateOrUpdate(ctx, conn, newIDToken)
+	if err != nil {
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	jwt, err := utils.GenerateJWT(googleJWTIssuer, newIDToken.Sub)
+	if err != nil {
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ginCtx.JSON(http.StatusOK, gin.H{"jwt": jwt})
 }
